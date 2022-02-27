@@ -21,16 +21,27 @@ using namespace cv;
  * @param ksize - The size of kernel with matrix ksize x ksize
  * @param sigma - The sigma of gaussian distribution.
  */
-void createGaussianKernel(Mat& kernel,int ksize = 5, float sigma = 1.0);
+void createGaussianKernel(Mat& kernel,int ksize, float sigma);
 
 /**
 * Conovle source matrix with kernel
 * 
-* @param src - The matrix of source image (grayscale)
-* @param dest - The matrx of destination image
+* @param src - The matrix of source image
+* @param dest - The matrix of destination image
 * @param kernel - The kernel matrix
 */
 void convolve(const Mat& src, Mat& dest, const Mat& kernel);
+
+
+/**
+* Apply GaussianBlur kernel to image
+*
+* @param src - The matrix of source image (gray scale)
+* @param dest - The matrix of destination image
+* @param kernel - The gaussian kernel
+*
+*/
+void applyGaussianBlur(const Mat& src, Mat& dest, int ksize, float sigma);
 
 
 /**
@@ -133,6 +144,10 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 * @param weakPixel - The pixel that assigned to weak position on image, default 75
 * @return 1 - if detecting successfully, otherwise 0.
 */
-int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, float lowThreshold, float highThreshold, float strongPixel = 255.0, float weakPixel = 75.0);
+int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0, float lowThreshold = 0.05, float highThreshold = 0.1, float strongPixel = 255.0, float weakPixel = 75.0);
+
+
+
+
 #endif // ! _FUNCTION_H_
 

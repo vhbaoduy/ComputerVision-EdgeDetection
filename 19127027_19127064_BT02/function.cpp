@@ -36,10 +36,9 @@ void convolve(const Mat& src,Mat& dest, const Mat& kernel) {
 
 	// initial destination matrix
 	Mat result(src.rows, src.cols, CV_32F);
+
 	int ksize = kernel.rows;
 
-	bool flag1 = kernel.type() == CV_8S;
-	bool flag2 = src.type() == CV_8U;
 	// compute the center of matrix
 	const int dx = ksize / 2;
 	const int dy = ksize / 2;
@@ -60,15 +59,6 @@ void convolve(const Mat& src,Mat& dest, const Mat& kernel) {
 							// reduce noise
 							temp += src.at<uchar>(y, x) * kernel.at<float>(k, l);
 						}
-						else if (kernel.type() == CV_32S && src.type() == CV_8U){
-							// fillter
-							temp += src.at<uchar>(y, x) * kernel.at<int>(k, l);
-
-						}
-						else if(kernel.type() == CV_32S && src.type() == CV_32F) {
-							// fillter
-							temp += src.at<float>(y, x) * kernel.at<int>(k, l);
-						}
 						else {
 							temp += src.at<float>(y, x) * kernel.at<float>(k, l);
 						}
@@ -81,6 +71,13 @@ void convolve(const Mat& src,Mat& dest, const Mat& kernel) {
 		}
 	}
 	dest = result.clone();
+}
+
+
+void applyGaussianBlur(const Mat& src, Mat& dest, int ksize, float sigma) {
+	Mat kernel;
+	createGaussianKernel(kernel, ksize, sigma);
+	convolve(src, dest, kernel);
 }
 
 
@@ -135,16 +132,14 @@ void scale(Mat& mat, float value) {
 }
 
 void computeGradient(const Mat& image, Mat& grad, Mat& theta) {
-	int xFilters[3][3] = { {-1,0, 1}, {-2,0,2},{-1,0,1} };
-	int yFilters[3][3] = { {1, 2, 1} ,{0, 0, 0},{-1, -2, -1} };
-	Mat Kx(3, 3, CV_32S, xFilters);
-	Mat Ky(3, 3, CV_32S, yFilters);
+	float xFilters[3][3] = { {-1,0, 1}, {-2,0,2},{-1,0,1} };
+	float yFilters[3][3] = { {1, 2, 1} ,{0, 0, 0},{-1, -2, -1} };
+	Mat Kx(3, 3, CV_32F, xFilters);
+	Mat Ky(3, 3, CV_32F, yFilters);
 	Mat Ix, Iy;
 
 	convolve(image, Ix, Kx);
-	
 	convolve(image, Iy, Ky);
-
 	computeHypotenuse(Ix, Iy, grad);
 	computeTheta(Iy, Ix, theta);
 }
@@ -222,13 +217,15 @@ void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree) {
 void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel, float weakPixel) {
 	dest = Mat(src.rows, src.cols, src.type());
 	float maxPixel = findMaxPixel(src);
+	float lowPixel = lowThreshold * maxPixel;
+	float highPixel = lowPixel* highThreshold;
 	for (int i = 0; i < src.rows; ++i) {
 		for (int j = 0; j < src.cols; ++j) {
 
-			if (src.at<float>(i, j) < lowThreshold) {
+			if (src.at<float>(i, j) < lowPixel) {
 				dest.at<float>(i, j) = 0;
 			}
-			else if (src.at<float>(i, j) <= highThreshold) {
+			else if (src.at<float>(i, j) <= highPixel) {
 				dest.at<float>(i, j) = weakPixel;
 			}
 			else {
@@ -263,17 +260,14 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, float lowThreshold, float highThreshold, float strongPixel, float weakPixel)
 {
 	try {
-		Mat gaussianKernel, imageBlur, grads, theta, angle, nonMaxSuprression;
+		Mat imageBlur, grads, theta, angle, nonMaxSuprression;
 
 		// Step 1: reduce noise or blur image
-
 		// create kernel to apply reduce noise
-		createGaussianKernel(gaussianKernel, ksize, sigma);
+		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
 		// reduce noise
-		convolve(sourceImage, imageBlur, gaussianKernel);
 		// Step 2: compute gradient and theta
 		computeGradient(imageBlur, grads, theta);
-		//scale(grads, 1/255.0);
 		// Step 3: apply non max supression
 		//convert radion to dregree after applying
 		convertRadianToDegree(theta, angle);
