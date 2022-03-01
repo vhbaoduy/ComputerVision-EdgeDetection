@@ -32,7 +32,7 @@ void createGaussianKernel(Mat& kernel, int ksize, float sigma) {
 }
 
 
-void convolve(const Mat& src,Mat& dest, const Mat& kernel) {
+void convolve(const Mat& src, Mat& dest, const Mat& kernel) {
 
 	// initial destination matrix
 	Mat result(src.rows, src.cols, CV_32F);
@@ -70,6 +70,13 @@ void convolve(const Mat& src,Mat& dest, const Mat& kernel) {
 			result.at<float>(i, j) = temp;
 		}
 	}
+	//int temp = 0;
+	//for (int i = 0; i < src.rows; ++i) {
+	//	for (int j = 0; j < src.rows; ++j) {
+	//		if (result.at<float>(i, j) < 0) temp++;
+	//	}
+	//}
+	//cout << temp << endl;
 	dest = result.clone();
 }
 
@@ -282,6 +289,81 @@ int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, floa
 	}
 	return 1;
 
+}
 
 
+float calculateLaplacianOfGaussian(int x, int y, float sigma) {
+	float value1 = -((x * x + y * y) / (2.0 * sigma * sigma));
+	float value2 = -1.0 / (M_PI * sigma * sigma * sigma * sigma);
+	return value2 * (1 + value1) * exp(value1);
+}
+
+Mat createLaplacianOfGaussian(int ksize, float sigma) {
+	
+	if (ksize % 2 == 0) {
+		ksize += 1;
+	}
+	Mat dest(ksize, ksize, CV_32F);
+	int range = (ksize - 1) / 2;
+	// initial the needed variable
+	float sum = 0.0, r;
+	for (int x = -range; x <= range; ++x) {
+		for (int y = -range; y <= range; ++y) {
+
+			// Apply gaussian distribution
+			dest.at<float>(x + range, y + range) = calculateLaplacianOfGaussian(x,y,sigma);
+
+			// Calculate sum to normalize
+			sum += dest.at<float>(x + range, y + range);
+		}
+	}
+
+	 //Normalize the value of kernel
+	for (int i = 0; i < ksize; ++i) {
+		for (int j = 0; j < ksize; ++j) {
+			dest.at<float>(i, j) /= sum;
+			//if (dest.at<float>(i, j) < 0) temp++;
+		}
+	}
+	return dest.clone();
+}
+
+
+void applyZeroCrossing(const Mat& src, Mat& dest) {
+	Mat result(src.rows, src.cols, CV_32F);
+
+	for (int i = 1; i < src.rows - 1; ++i) {
+		for (int j = 1; j < src.cols - 1; ++j) {
+			int negCounter = 0;
+			int posCounter = 0;
+			for (int k = -1; k <= 1; ++k) {
+				for (int l = -1; l <= 1; ++l) {
+					if (k != 0 && l != 0) {
+						if (src.at<float>(i + k, j + l) > 0) posCounter++;
+						else if (src.at<float>(i + k, j + l) < 0) negCounter++;
+					}
+				}
+			}
+			if (negCounter > 0 && posCounter > 0) {
+				result.at<float>(i, j) = 1.0;
+			}
+			else {
+			}
+		}
+	}
+
+	dest = result.clone();
+}
+
+
+void detectByLaplace(const Mat& sourceImage, Mat& destinationImage) {
+	float xFilters[3][3] = { {0,-1, 0}, {-1,4,-1},{0,-1,0} };
+	//float yFilters[3][3] = { {-1, -1, -1} ,{-1, 8, -1},{-1, -1, -1} };
+	Mat Kx(3, 3, CV_32F, xFilters);
+	//Mat Ky(3, 3, CV_32F, yFilters);
+
+	Mat Ix;
+	convolve(sourceImage, destinationImage, Kx);
+	//convolve(src, dest, Ky);
+	//computeHypotenuse(Ix, Iy, dest);
 }

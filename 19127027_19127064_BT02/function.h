@@ -88,8 +88,7 @@ void scale(Mat& mat, float value);
 * @param grad - The matrix of gradient
 * @param theta - The matrix of angle
 */
-void computeGradient(const Mat& image, Mat& grad, Mat& theta);
-
+void computeGradient(const Mat& image, Mat& grad, Mat& theta); // function of Canny of algorithms
 
 /**
 * Convert radian matrix to degree matrix
@@ -97,7 +96,7 @@ void computeGradient(const Mat& image, Mat& grad, Mat& theta);
 * @param src - The input matrix (radian)
 * @param dest - The output matrix (degree)
 */
-void convertRadianToDegree(const Mat& src, Mat& dest);
+void convertRadianToDegree(const Mat& src, Mat& dest); // function of Canny of algorithms
 
 
 /**
@@ -105,7 +104,7 @@ void convertRadianToDegree(const Mat& src, Mat& dest);
 * @param mat - The matrix of image
 * @return max - The max pixel in the image
 */
-float findMaxPixel(const Mat& mat);
+float findMaxPixel(const Mat& mat); // function of Canny of algorithms
 
 
 /**
@@ -115,7 +114,7 @@ float findMaxPixel(const Mat& mat);
 * @param dest - The destination matrix (output)
 * @param degree - The matrix of degree (input)
 */
-void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree);
+void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree); // function of Canny of algorithms
 
 
 
@@ -129,7 +128,7 @@ void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree);
 * @param strongPixel - The pixel that assigned to strong position on image, default 255
 * @param weakPixel - The pixel that assigned to weak position on image, default 75
 */
-void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel = 255.0, float weakPixel = 75.0);
+void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel = 255.0, float weakPixel = 75.0); // function of Canny of algorithms
 
 
 /**
@@ -146,6 +145,46 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 */
 int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0, float lowThreshold = 0.05, float highThreshold = 0.1, float strongPixel = 255.0, float weakPixel = 75.0);
 
+
+
+
+/*
+* Calculate 2D - Laplacian of Gaussian.
+* 
+* Reference: https://homepages.inf.ed.ac.uk/rbf/HIPR2/log.htm
+* 
+* @param x - the value at position x
+* @param y - the value at position y
+* @param sigma - Gaussian standard deviation
+* @return The value of 2D Laplacian of Gaussian
+*/
+float calculateLaplacianOfGaussian(int x, int y, float sigma);
+
+
+/*
+* Create LoG (Laplacian of Gaussian) kernel
+* @param ksize - the size of kernel
+* @param sigma - Gaussian standard deviation
+* @return -  The LogG kernel
+*/
+Mat createLaplacianOfGaussian(int ksize, float sigma);
+
+
+/*
+* Apply zero crossing to detect edges.
+* @param src - The matrix of source image
+* @param dest - The matrix of destination image
+*/
+void applyZeroCrossing(const Mat& src, Mat& dest);
+
+
+
+/**
+* Detect edges by Laplacian
+* @param sourceImage - The matix of source image
+* @param destinationImage - The maxtrix of destination image
+*/
+void detectByLaplace(const Mat& sourceImage, Mat& destinationImage);
 
 
 
