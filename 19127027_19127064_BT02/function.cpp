@@ -354,7 +354,7 @@ void applyZeroCrossing(const Mat& src, Mat& dest) {
 
 	dest = result.clone();
 }
-int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY)
+int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY, int ksize, float sigma)
 {
 	try {
 		Mat imageBlur;
@@ -363,7 +363,7 @@ int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinat
 		Mat Kx(3, 3, CV_32F, xFilters);
 		Mat Ky(3, 3, CV_32F, yFilters);
 
-		applyGaussianBlur(sourceImage, imageBlur, 5, 1.0);
+		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
 		convolve(imageBlur, destinationImage_X, Kx);
 		scale(destinationImage_X, 1.0 / 255);
 		convolve(imageBlur, destinationImage_Y, Ky);

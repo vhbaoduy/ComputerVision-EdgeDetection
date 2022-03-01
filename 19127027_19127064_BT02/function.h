@@ -132,7 +132,7 @@ void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree); // fun
 */
 void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel = 255.0, float weakPixel = 75.0); // function of Canny of algorithms
 
-int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY);
+int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY, int ksize = 5, float sigma = 1.0);
 
 /**
 * Detect the egdge of image
@@ -188,7 +188,6 @@ void applyZeroCrossing(const Mat& src, Mat& dest);
 * @param destinationImage - The maxtrix of destination image
 */
 void detectByLaplace(const Mat& sourceImage, Mat& destinationImage);
-
 
 
 #endif // ! _FUNCTION_H_
