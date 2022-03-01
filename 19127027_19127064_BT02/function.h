@@ -6,6 +6,8 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 
+#include <map>
+
 
 #include <assert.h>
 // include library using M_PI in math
@@ -130,6 +132,7 @@ void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree); // fun
 */
 void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel = 255.0, float weakPixel = 75.0); // function of Canny of algorithms
 
+int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY);
 
 /**
 * Detect the egdge of image

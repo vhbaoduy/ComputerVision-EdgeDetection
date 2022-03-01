@@ -288,8 +288,8 @@ int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, floa
 		return 0;
 	}
 	return 1;
-
 }
+
 
 
 float calculateLaplacianOfGaussian(int x, int y, float sigma) {
@@ -354,14 +354,34 @@ void applyZeroCrossing(const Mat& src, Mat& dest) {
 
 	dest = result.clone();
 }
+int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY)
+{
+	try {
+		Mat imageBlur;
+		float xFilters[3][3] = { {-1,0, 1}, {-2,0,2},{-1,0,1} };
+		float yFilters[3][3] = { {-1, -2, -1} ,{0, 0, 0},{1, 2, 1} };
+		Mat Kx(3, 3, CV_32F, xFilters);
+		Mat Ky(3, 3, CV_32F, yFilters);
 
+		applyGaussianBlur(sourceImage, imageBlur, 5, 1.0);
+		convolve(imageBlur, destinationImage_X, Kx);
+		scale(destinationImage_X, 1.0 / 255);
+		convolve(imageBlur, destinationImage_Y, Ky);
+		scale(destinationImage_Y, 1.0 / 255);
+		computeHypotenuse(destinationImage_X, destinationImage_Y, destinationImage_XY);
+	}
+	catch (Exception& e) {
+		cout << e.msg << endl;
+		return 0;
+	}
+	return 1;
+}
 
 void detectByLaplace(const Mat& sourceImage, Mat& destinationImage) {
 	float xFilters[3][3] = { {0,-1, 0}, {-1,4,-1},{0,-1,0} };
 	//float yFilters[3][3] = { {-1, -1, -1} ,{-1, 8, -1},{-1, -1, -1} };
 	Mat Kx(3, 3, CV_32F, xFilters);
 	//Mat Ky(3, 3, CV_32F, yFilters);
-
 	Mat Ix;
 	convolve(sourceImage, destinationImage, Kx);
 	//convolve(src, dest, Ky);

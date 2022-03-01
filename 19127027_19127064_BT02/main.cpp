@@ -1,52 +1,41 @@
 #include "function.h"
 
+int main(int argc, char** argv) {
+	cv::CommandLineParser parser(argc, argv,
+		"{help h usage ? |      | }"
+		"{@input |D:\\lena.png|input image}"
+		"{choice ||choose function    }");
+	parser.printMessage();
 
-int main() {
+	String imageSrc = parser.get<String>("@input");
+	Mat src = imread(imageSrc,IMREAD_GRAYSCALE);
 
-
-	string path = "F:\\Academic 2021_2022\\Image Testing\\cacn.jpg";
-	Mat src, temp, dest;
-	src = imread(path, IMREAD_GRAYSCALE);
-	resize(src, src, Size(512, 512));
-	//Laplacian(src, dest,CV_8U,3);
-	//resize(src, src, Size(512, 512));
-	////cout << src.step;
-	//imshow("Source", src);
-	/*int check = detectByCanny(src, dest, 5, 1.0, 0.1, 0.3);
-	imshow("Detected", dest);
-	Mat imageCanny;
-	Canny(src, imageCanny, 50, 100);
-	imshow("Canny", imageCanny);
-	waitKey(0);*/
+	String choice = parser.get<String>("choice");
 	
-	Mat imgLap, imgBlur;
-	GaussianBlur(src, imgBlur, Size(5,5), 1.4);
-	Laplacian(imgBlur, imgLap, CV_32F);
-	applyZeroCrossing(imgLap, imgLap);
-	imshow("lap CV", imgLap);
+	if (choice=="Sobel"){
+		Mat destX, destY, destXY, grad_x, grad_y;
+		int check = detectBySobel(src, destX, destY, destXY);
+		imshow("Orginal", src);
+		imshow("Sobel by X", destX);
+		imshow("Sobel by Y", destY);
+		imshow("Sobel by XY", destXY);
 
-
-	Mat lap;
-	detectByLaplace(imgBlur, lap);
-	//imshow("Lap", lap);
-	applyZeroCrossing(lap, lap);
-	imshow("lap", lap);
-	
-	//applyGaussianBlur(src, src, 5, 1.0);
-	//Mat kernel = createLaplacianOfGaussian(7, 1.4);
-	//convolve(src, temp, kernel);
-	//cout << kernel;
-	//scale(src, 1 / 255.0);
-	//detectByLaplace(src, dest);
-	//imshow("img", temp);
-	//scale(temp, 1 / 255.);
-	//imshow("Temp", temp);
-	//applyZeroCrossing(temp, dest);
-	//scale(dest, 1/255.0);
-	//imshow("dest", dest);
-
-	
-
-	waitKey(0);
+		Sobel(src, grad_x, CV_8U, 1, 0);
+		Sobel(src, grad_y, CV_8U, 0, 1);
+		imshow("Sobel CV by X", grad_x);
+		imshow("Sobel CV by Y", grad_y);
+		waitKey(0);
+	}
+    
+	if (choice=="Canny") {
+		Mat dest;
+		int check = detectByCanny(src, dest, 5, 1.0, 0.1, 0.3);
+		imshow("Orginal", src);
+		Mat imageCanny;
+		Canny(src, imageCanny, 50, 100);
+		imshow("Canny", dest);
+		imshow("Canny CV", imageCanny);
+		waitKey(0);
+	}
 	return 0;
 }
