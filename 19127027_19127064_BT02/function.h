@@ -132,10 +132,33 @@ void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree); // fun
 */
 void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel = 255.0, float weakPixel = 75.0); // function of Canny of algorithms
 
+/**
+* Detect the egdge of image by Sobel method
+* @param sourceImage - The matrix contains source image
+* @param destination - The matrix contains destination image
+* @param ksize - The size of kernel with matrix ksize x ksize
+* @param sigma - The sigma of gaussian distribution.
+* @param lowThreshold - The low threshold (input), default 0.05
+* @param highThreshold - The high thresold (input), default 0.1
+* @return 1 - if detecting successfully, otherwise 0.
+*/
 int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY, int ksize = 5, float sigma = 1.0);
 
+
 /**
-* Detect the egdge of image
+* Detect the egdge of image by Prewitt method
+* @param sourceImage - The matrix contains source image
+* @param destination - The matrix contains destination image
+* @param ksize - The size of kernel with matrix ksize x ksize
+* @param sigma - The sigma of gaussian distribution.
+* @param lowThreshold - The low threshold (input), default 0.05
+* @param highThreshold - The high thresold (input), default 0.1
+* @return 1 - if detecting successfully, otherwise 0.
+*/
+int detectByPrewitt(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY, int ksize = 5, float sigma = 1.0);
+
+/**
+* Detect the egdge of image by Canny method
 * @param sourceImage - The matrix contains source image
 * @param destination - The matrix contains destination image
 * @param ksize - The size of kernel with matrix ksize x ksize
@@ -180,14 +203,36 @@ Mat createLaplacianOfGaussian(int ksize, float sigma);
 */
 void applyZeroCrossing(const Mat& src, Mat& dest);
 
-
-
 /**
 * Detect edges by Laplacian
 * @param sourceImage - The matix of source image
 * @param destinationImage - The maxtrix of destination image
 */
 void detectByLaplace(const Mat& sourceImage, Mat& destinationImage);
+
+/**
+* Sobel method with ksize, sigma trackbar
+* @param sourceImage - The matix of source image
+*/
+void sobelMethod(const Mat& sourceImage);
+
+/**
+* Prewitt method with ksize, sigma trackbar
+* @param sourceImage - The matix of source image
+*/
+void prewittMethod(const Mat& sourceImage);
+
+/**
+* Laplace method
+* @param sourceImage - The matix of source image
+*/
+void laplaceMethod(const Mat& sourceImage);
+
+/**
+* Canny method with ksize, sigma, low threshold, high threshold trackbar
+* @param sourceImage - The matix of source image
+*/
+void cannyMethod(const Mat& sourceImage);
 
 
 #endif // ! _FUNCTION_H_

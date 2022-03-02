@@ -377,6 +377,29 @@ int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinat
 	return 1;
 }
 
+int detectByPrewitt(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY, int ksize, float sigma)
+{
+	try {
+		Mat imageBlur;
+		float xFilters[3][3] = { {-1,0,1}, {-1,0,1},{-1,0,1} };
+		float yFilters[3][3] = { {-1,-1,-1}, {0, 0, 0},{1, 1, 1} };
+		Mat Kx(3, 3, CV_32F, xFilters);
+		Mat Ky(3, 3, CV_32F, yFilters);
+
+		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
+		convolve(imageBlur, destinationImage_X, Kx);
+		scale(destinationImage_X, 1.0 / 255);
+		convolve(imageBlur, destinationImage_Y, Ky);
+		scale(destinationImage_Y, 1.0 / 255);
+		computeHypotenuse(destinationImage_X, destinationImage_Y, destinationImage_XY);
+	}
+	catch (Exception& e) {
+		cout << e.msg << endl;
+		return 0;
+	}
+	return 1;
+}
+
 void detectByLaplace(const Mat& sourceImage, Mat& destinationImage) {
 	float xFilters[3][3] = { {0,-1, 0}, {-1,4,-1},{0,-1,0} };
 	//float yFilters[3][3] = { {-1, -1, -1} ,{-1, 8, -1},{-1, -1, -1} };
@@ -386,4 +409,104 @@ void detectByLaplace(const Mat& sourceImage, Mat& destinationImage) {
 	convolve(sourceImage, destinationImage, Kx);
 	//convolve(src, dest, Ky);
 	//computeHypotenuse(Ix, Iy, dest);
+}
+
+void sobelMethod(const Mat& sourceImage)
+{
+	Mat destX, destY, destXY;
+	namedWindow("Sobel", 1);
+	int ksize, sigma, lowThreshold, highThreshold;
+
+	createTrackbar("ksize", "Sobel", &ksize, 9);
+	createTrackbar("sigma", "Sobel", &sigma, 100);
+
+	setTrackbarPos("ksize", "Sobel", 5);
+	setTrackbarPos("sigma", "Sobel", 10);
+
+	while (true) {
+		if (ksize % 2 != 0) {
+			int check = detectBySobel(sourceImage, destX, destY, destXY, ksize, sigma);
+			imshow("Sobel", destXY);
+
+			// OpenCV
+			/*Mat grad_x, grad_y;
+			Sobel(originalImage, grad_x, CV_8U, 1, 0);
+			Sobel(originalImage, grad_y, CV_8U, 0, 1);
+			imshow("Sobel CV by X", grad_x);
+			imshow("Sobel CV by Y", grad_y);*/
+		}
+		int iKey = waitKey(50);
+		if (iKey == 27)
+			break;
+	}
+}
+
+void prewittMethod(const Mat& sourceImage)
+{
+	Mat destX, destY, destXY, grad_x, grad_y;
+	namedWindow("Prewitt", 1);
+	int ksize, sigma, lowThreshold, highThreshold;
+
+	createTrackbar("ksize", "Prewitt", &ksize, 9);
+	createTrackbar("sigma", "Prewitt", &sigma, 100);
+
+	setTrackbarPos("ksize", "Prewitt", 5);
+	setTrackbarPos("sigma", "Prewitt", 10);
+
+	while (true) {
+		if (ksize % 2 != 0) {
+			int check = detectByPrewitt(sourceImage, destX, destY, destXY, ksize, sigma);
+			imshow("Prewitt", destXY);
+		}
+		int iKey = waitKey(50);
+		if (iKey == 27)
+			break;
+	}
+}
+
+void laplaceMethod(const Mat& sourceImage)
+{
+	Mat dest;
+	namedWindow("Laplace", 1);
+
+	while (true) {
+		detectByLaplace(sourceImage, dest);
+
+		imshow("Laplace", dest);
+		int iKey = waitKey(50);
+		if (iKey == 27)
+			break;
+	}
+}
+
+void cannyMethod(const Mat& sourceImage)
+{
+	Mat dest;
+	namedWindow("Canny", 1);
+	int ksize, sigma, lowThreshold, highThreshold;
+
+	createTrackbar("ksize", "Canny", &ksize, 9);
+	createTrackbar("sigma", "Canny", &sigma, 100);
+	createTrackbar("low\nthreshold", "Canny", &lowThreshold, 100);
+	createTrackbar("high\nthreshold", "Canny", &highThreshold, 100);
+
+	setTrackbarPos("ksize", "Canny", 5);
+	setTrackbarPos("sigma", "Canny", 10);
+	setTrackbarPos("low\nthreshold", "Canny", 10);
+	setTrackbarPos("high\nthreshold", "Canny", 30);
+	
+	while (true) {
+		if (ksize % 2 != 0) {
+			int check = detectByCanny(sourceImage, dest, ksize, sigma*1.0/100, lowThreshold*1.0/100, highThreshold*1.0/100);
+			imshow("Canny", dest);
+			
+			// OpenCV
+			/*Mat imageCanny;
+			Canny(originalImage, imageCanny, 50, 100);
+			imshow("Canny CV", imageCanny);*/
+		}
+		int iKey = waitKey(50);
+		if (iKey == 27)
+			break;
+	}
 }

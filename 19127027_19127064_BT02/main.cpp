@@ -3,74 +3,55 @@
 int main(int argc, char** argv) {
 	cv::CommandLineParser parser(argc, argv,
 		"{help h usage ? |      | }"
-		"{input |D:\\lena.png|input image}"
-		"{choice ||choose function    }");
+		"{input |D:\\lena.png|Input image's path}"
+		"{method ||Choose method to detect edge of image}");
+	// Show help's commandline 
 	parser.printMessage();
 
+	// Get image's path
 	String imageSrc = parser.get<String>("input");
 	Mat originalImage = imread(imageSrc, IMREAD_COLOR), grayscaleImage;
+
+	// Resize image to 512x512
 	resize(originalImage, originalImage, Size(512, 512));
+
+	// Convert color's image to grayscale
 	cvtColor(originalImage, grayscaleImage, COLOR_BGR2GRAY);
-	String choice = parser.get<String>("choice");
 
-	if (choice == "Sobel") {
-		Mat destX, destY, destXY, grad_x, grad_y;
-		namedWindow("Sobel", 1);
-		int ksize, sigma, lowThreshold, highThreshold;
-
-		createTrackbar("ksize", "Sobel", &ksize, 9);
-		createTrackbar("sigma", "Sobel", &sigma, 100);
-		setTrackbarPos("ksize", "Sobel", 5);
-		setTrackbarPos("sigma", "Sobel", 10);
-
-		while (true) {
-			if (ksize % 2 != 0) {
-				int check = detectBySobel(grayscaleImage, destX, destY, destXY, ksize, sigma);
-
-				imshow("Orginal image", originalImage);
-				imshow("Sobel", destXY);
-
-				// OpenCV
-				/*Sobel(originalImage, grad_x, CV_8U, 1, 0);
-				Sobel(originalImage, grad_y, CV_8U, 0, 1);
-				imshow("Sobel CV by X", grad_x);
-				imshow("Sobel CV by Y", grad_y);*/
-			}
-			int iKey = waitKey(50);
-			if (iKey == 27)
-				break;
-		}
+	// Get method option
+	String method = parser.get<String>("method");
+	
+	// Run all methods
+	if (method == "All") {
+		imshow("Orginal image", originalImage);
+		sobelMethod(grayscaleImage);
+		prewittMethod(grayscaleImage);
+		laplaceMethod(grayscaleImage);
+		cannyMethod(grayscaleImage);
 	}
 
-	if (choice=="Canny") {
-		Mat dest;
-		namedWindow("Canny", 1);
-		int ksize, sigma, lowThreshold, highThreshold;
+	// Sobel method
+	if (method == "Sobel") {
+		imshow("Orginal image", originalImage);
+		sobelMethod(grayscaleImage);
+	}
 
-		createTrackbar("ksize", "Canny", &ksize, 9);
-		createTrackbar("sigma", "Canny", &sigma, 100);
-		createTrackbar("low\nthreshold", "Canny", &lowThreshold, 100);
-		createTrackbar("high\nthreshold", "Canny", &highThreshold, 100);
-		setTrackbarPos("ksize", "Canny", 5);
-		setTrackbarPos("sigma", "Canny", 10);
-		setTrackbarPos("low\nthreshold", "Canny", 5);
-		setTrackbarPos("high\nthreshold", "Canny", 10);
-		
-		while (true) {
-			if (ksize % 2 != 0) {
-				int check = detectByCanny(grayscaleImage, dest, ksize, sigma*1.0/100, lowThreshold*1.0/100, highThreshold*1.0/100);
-				imshow("Orginal", originalImage);
-				imshow("Canny", dest);
-				
-				// OpenCV
-				/*Mat imageCanny;
-				Canny(originalImage, imageCanny, 50, 100);
-				imshow("Canny CV", imageCanny);*/
-			}
-			int iKey = waitKey(50);
-			if (iKey == 27)
-				break;
-		}
+	// Prewitt method
+	if (method == "Prewitt") {
+		imshow("Orginal image", originalImage);
+		prewittMethod(grayscaleImage);
+	}
+
+	// Laplace method
+	if (method == "Laplace") {
+		imshow("Orginal image", originalImage);
+		laplaceMethod(grayscaleImage);
+	}
+
+	// Canny method
+	if (method == "Canny") {
+		imshow("Orginal image", originalImage);
+		cannyMethod(grayscaleImage);
 	}
 	return 0;
 }
