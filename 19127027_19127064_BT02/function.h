@@ -231,16 +231,16 @@ int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize = 5
 * Sobel method with ksize, sigma trackbar
 * @param sourceImage - The matix of source image
 */
-void sobelMethod(const Mat& sourceImage);
+void sobelMethod(const Mat& sourceImage, String direction);
 
 /**
 * Prewitt method with ksize, sigma trackbar
 * @param sourceImage - The matix of source image
 */
-void prewittMethod(const Mat& sourceImage);
+void prewittMethod(const Mat& sourceImage, String direction);
 
 /**
-* Laplace method
+* Laplace method with ksize, sigma trackbar
 * @param sourceImage - The matix of source image
 */
 void laplaceMethod(const Mat& sourceImage);
