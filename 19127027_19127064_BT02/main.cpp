@@ -3,8 +3,8 @@
 int main(int argc, char** argv) {
 	cv::CommandLineParser parser(argc, argv,
 		"{help h usage ? |      | }"
-		"{input |D:\\lena.png|Input image's path}"
-		"{method ||Choose method to detect edge of image}");
+		"{input |.\\lena.png|Input image's path}"
+		"{method ||Choose method [Sobel, Prewitt, Laplace, Canny, All] to detect edge of image }");
 	// Show help's commandline 
 	parser.printMessage();
 

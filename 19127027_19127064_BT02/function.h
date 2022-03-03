@@ -8,13 +8,23 @@
 
 #include <map>
 
-
-#include <assert.h>
 // include library using M_PI in math
 #include <cmath>
 
 using namespace std;
 using namespace cv;
+
+
+
+//////////////////////////////////////////////////////////////////////////////////
+/*
+*
+* DECLARE SOME SUB FUNCTION TO SUPPORT DETECTION'S FUNCTION
+*
+*
+*/
+//////////////////////////////////////////////////////////////////////////////////
+
 
 /**
  * Create Gaussian Kernel
@@ -77,11 +87,11 @@ void computeTheta(const Mat& mat1, const Mat& mat2, Mat& dest);
 
 
 /**
-* Scale matrix after computing gradient
+* Convert matrix of image to new range that supports to show image with cv2::imshow()
 * @param mat - The input matrix
 * @param value - the value of scaling
 */
-void scale(Mat& mat, float value);
+void normalize(Mat& mat, float value);
 
 
 /**
@@ -132,6 +142,26 @@ void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree); // fun
 */
 void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel = 255.0, float weakPixel = 75.0); // function of Canny of algorithms
 
+
+
+/*
+* Apply zero crossing to detect edges.
+* @param src - The matrix of source image
+* @param dest - The matrix of destination image
+*/
+void applyZeroCrossing(const Mat& src, Mat& dest); // function of laplacian algorithms
+
+
+//////////////////////////////////////////////////////////////////////////////////
+/*
+*
+* DECLARE MAIN FUNCTION OF DETECTION
+*
+*
+*/
+//////////////////////////////////////////////////////////////////////////////////
+
+
 /**
 * Detect the egdge of image by Sobel method
 * @param sourceImage - The matrix contains source image
@@ -174,41 +204,28 @@ int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, 
 
 
 
-/*
-* Calculate 2D - Laplacian of Gaussian.
-* 
-* Reference: https://homepages.inf.ed.ac.uk/rbf/HIPR2/log.htm
-* 
-* @param x - the value at position x
-* @param y - the value at position y
-* @param sigma - Gaussian standard deviation
-* @return The value of 2D Laplacian of Gaussian
-*/
-float calculateLaplacianOfGaussian(int x, int y, float sigma);
-
-
-/*
-* Create LoG (Laplacian of Gaussian) kernel
-* @param ksize - the size of kernel
-* @param sigma - Gaussian standard deviation
-* @return -  The LogG kernel
-*/
-Mat createLaplacianOfGaussian(int ksize, float sigma);
-
-
-/*
-* Apply zero crossing to detect edges.
-* @param src - The matrix of source image
-* @param dest - The matrix of destination image
-*/
-void applyZeroCrossing(const Mat& src, Mat& dest);
-
 /**
 * Detect edges by Laplacian
 * @param sourceImage - The matix of source image
 * @param destinationImage - The maxtrix of destination image
+* @param ksize - The size of kernel with matrix ksize x ksize
+* @param sigma - The sigma of gaussian distribution.
+* @param isZeroCrossing - The option of applying zerocrossing
 */
-void detectByLaplace(const Mat& sourceImage, Mat& destinationImage);
+int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0, bool isZeroCrossing = true);
+
+
+
+//////////////////////////////////////////////////////////////////////////////////
+/*
+*
+* FUNCTIONS THAT PROCESS COMMANDLINE
+*
+*
+*/
+//////////////////////////////////////////////////////////////////////////////////
+
+
 
 /**
 * Sobel method with ksize, sigma trackbar

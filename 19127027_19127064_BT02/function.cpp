@@ -1,5 +1,14 @@
 #include "function.h"
 
+
+//////////////////////////////////////////////////////////////////////////////////
+/*
+* 
+* IMPLEMENT SOME SUB FUNCTION TO SUPPORT DETECTION'S FUNCTION
+* 
+* 
+*/
+//////////////////////////////////////////////////////////////////////////////////
 void createGaussianKernel(Mat& kernel, int ksize, float sigma) {
 	
 
@@ -70,19 +79,14 @@ void convolve(const Mat& src, Mat& dest, const Mat& kernel) {
 			result.at<float>(i, j) = temp;
 		}
 	}
-	//int temp = 0;
-	//for (int i = 0; i < src.rows; ++i) {
-	//	for (int j = 0; j < src.rows; ++j) {
-	//		if (result.at<float>(i, j) < 0) temp++;
-	//	}
-	//}
-	//cout << temp << endl;
 	dest = result.clone();
 }
 
 
 void applyGaussianBlur(const Mat& src, Mat& dest, int ksize, float sigma) {
 	Mat kernel;
+
+	// create gaussian kernel
 	createGaussianKernel(kernel, ksize, sigma);
 	convolve(src, dest, kernel);
 }
@@ -120,17 +124,19 @@ void computeHypotenuse(const Mat& mat1, const Mat& mat2, Mat& dest) {
 
 void computeTheta(const Mat& mat1, const Mat& mat2, Mat& dest) {
 
-	Mat result(mat1.rows, mat1.cols, CV_32F);
-	for (int i = 0; i < mat1.rows; ++i) {
-		for (int j = 0; j < mat1.cols; ++j) {
-			result.at<float>(i, j) = atan2(mat1.at<float>(i, j), mat2.at<float>(i, j));
+	if (mat1.cols == mat2.cols && mat1.rows == mat2.rows) {
+		Mat result(mat1.rows, mat1.cols, CV_32F);
+		for (int i = 0; i < mat1.rows; ++i) {
+			for (int j = 0; j < mat1.cols; ++j) {
+				result.at<float>(i, j) = atan2(mat1.at<float>(i, j), mat2.at<float>(i, j));
+			}
 		}
+		dest = result.clone();
 	}
-	dest = result.clone();
 }
 
 
-void scale(Mat& mat, float value) {
+void normalize(Mat& mat, float value) {
 	for (int i = 0; i < mat.rows; ++i) {
 		for (int j = 0; j < mat.cols; ++j) {
 			mat.at<float>(i, j) = mat.at<float>(i, j) * value ;
@@ -224,8 +230,8 @@ void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree) {
 void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel, float weakPixel) {
 	dest = Mat(src.rows, src.cols, src.type());
 	float maxPixel = findMaxPixel(src);
-	float lowPixel = lowThreshold * maxPixel;
-	float highPixel = lowPixel* highThreshold;
+	float highPixel = maxPixel* highThreshold;
+	float lowPixel = lowThreshold * highPixel;
 	for (int i = 0; i < src.rows; ++i) {
 		for (int j = 0; j < src.cols; ++j) {
 
@@ -264,15 +270,52 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 	}
 }
 
+
+void applyZeroCrossing(const Mat& src, Mat& dest) {
+	Mat result(src.rows, src.cols, CV_32F);
+
+	for (int i = 1; i < src.rows - 1; ++i) {
+		for (int j = 1; j < src.cols - 1; ++j) {
+			int negCounter = 0;
+			int posCounter = 0;
+			for (int k = -1; k <= 1; ++k) {
+				for (int l = -1; l <= 1; ++l) {
+					if (k != 0 && l != 0) {
+						if (src.at<float>(i + k, j + l) > 0) posCounter++;
+						else if (src.at<float>(i + k, j + l) < 0) negCounter++;
+					}
+				}
+			}
+			if (negCounter > 0 && posCounter > 0) {
+				result.at<float>(i, j) = 255.0;
+			}
+			else {
+			}
+		}
+	}
+
+	dest = result.clone();
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+/*
+*
+* IMPLEMENT MAIN FUNCTION OF DETECTION
+*
+*
+*/
+//////////////////////////////////////////////////////////////////////////////////
+
 int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, float lowThreshold, float highThreshold, float strongPixel, float weakPixel)
 {
 	try {
 		Mat imageBlur, grads, theta, angle, nonMaxSuprression;
 
 		// Step 1: reduce noise or blur image
-		// create kernel to apply reduce noise
+		//// reduce noise
 		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
-		// reduce noise
+		
 		// Step 2: compute gradient and theta
 		computeGradient(imageBlur, grads, theta);
 		// Step 3: apply non max supression
@@ -291,83 +334,31 @@ int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, floa
 }
 
 
-
-float calculateLaplacianOfGaussian(int x, int y, float sigma) {
-	float value1 = -((x * x + y * y) / (2.0 * sigma * sigma));
-	float value2 = -1.0 / (M_PI * sigma * sigma * sigma * sigma);
-	return value2 * (1 + value1) * exp(value1);
-}
-
-Mat createLaplacianOfGaussian(int ksize, float sigma) {
-	
-	if (ksize % 2 == 0) {
-		ksize += 1;
-	}
-	Mat dest(ksize, ksize, CV_32F);
-	int range = (ksize - 1) / 2;
-	// initial the needed variable
-	float sum = 0.0, r;
-	for (int x = -range; x <= range; ++x) {
-		for (int y = -range; y <= range; ++y) {
-
-			// Apply gaussian distribution
-			dest.at<float>(x + range, y + range) = calculateLaplacianOfGaussian(x,y,sigma);
-
-			// Calculate sum to normalize
-			sum += dest.at<float>(x + range, y + range);
-		}
-	}
-
-	 //Normalize the value of kernel
-	for (int i = 0; i < ksize; ++i) {
-		for (int j = 0; j < ksize; ++j) {
-			dest.at<float>(i, j) /= sum;
-			//if (dest.at<float>(i, j) < 0) temp++;
-		}
-	}
-	return dest.clone();
-}
-
-
-void applyZeroCrossing(const Mat& src, Mat& dest) {
-	Mat result(src.rows, src.cols, CV_32F);
-
-	for (int i = 1; i < src.rows - 1; ++i) {
-		for (int j = 1; j < src.cols - 1; ++j) {
-			int negCounter = 0;
-			int posCounter = 0;
-			for (int k = -1; k <= 1; ++k) {
-				for (int l = -1; l <= 1; ++l) {
-					if (k != 0 && l != 0) {
-						if (src.at<float>(i + k, j + l) > 0) posCounter++;
-						else if (src.at<float>(i + k, j + l) < 0) negCounter++;
-					}
-				}
-			}
-			if (negCounter > 0 && posCounter > 0) {
-				result.at<float>(i, j) = 1.0;
-			}
-			else {
-			}
-		}
-	}
-
-	dest = result.clone();
-}
 int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY, int ksize, float sigma)
 {
 	try {
 		Mat imageBlur;
+
+		// initial sobel filter
 		float xFilters[3][3] = { {-1,0, 1}, {-2,0,2},{-1,0,1} };
 		float yFilters[3][3] = { {-1, -2, -1} ,{0, 0, 0},{1, 2, 1} };
 		Mat Kx(3, 3, CV_32F, xFilters);
 		Mat Ky(3, 3, CV_32F, yFilters);
 
+
+		// Apply Gaussian kernel to reduce noise 
 		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
+
+
 		convolve(imageBlur, destinationImage_X, Kx);
-		scale(destinationImage_X, 1.0 / 255);
+		// Normailize the matrix of image to show
+		normalize(destinationImage_X, 1.0 / 255);
+
 		convolve(imageBlur, destinationImage_Y, Ky);
-		scale(destinationImage_Y, 1.0 / 255);
+		// Normailize the matrix of image to show
+		normalize(destinationImage_Y, 1.0 / 255);
+
+
 		computeHypotenuse(destinationImage_X, destinationImage_Y, destinationImage_XY);
 	}
 	catch (Exception& e) {
@@ -381,16 +372,25 @@ int detectByPrewitt(const Mat& sourceImage, Mat& destinationImage_X, Mat& destin
 {
 	try {
 		Mat imageBlur;
+
+		// initial filters
 		float xFilters[3][3] = { {-1,0,1}, {-1,0,1},{-1,0,1} };
 		float yFilters[3][3] = { {-1,-1,-1}, {0, 0, 0},{1, 1, 1} };
 		Mat Kx(3, 3, CV_32F, xFilters);
 		Mat Ky(3, 3, CV_32F, yFilters);
 
+
+		// Apply Gaussian kernel to reduce noise 
 		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
+
 		convolve(imageBlur, destinationImage_X, Kx);
-		scale(destinationImage_X, 1.0 / 255);
+		// Normalize the matrix of image to show
+		normalize(destinationImage_X, 1.0 / 255);
+
 		convolve(imageBlur, destinationImage_Y, Ky);
-		scale(destinationImage_Y, 1.0 / 255);
+		// Normalize the matrix of image to show
+		normalize(destinationImage_Y, 1.0 / 255);
+
 		computeHypotenuse(destinationImage_X, destinationImage_Y, destinationImage_XY);
 	}
 	catch (Exception& e) {
@@ -400,15 +400,36 @@ int detectByPrewitt(const Mat& sourceImage, Mat& destinationImage_X, Mat& destin
 	return 1;
 }
 
-void detectByLaplace(const Mat& sourceImage, Mat& destinationImage) {
-	float xFilters[3][3] = { {0,-1, 0}, {-1,4,-1},{0,-1,0} };
-	//float yFilters[3][3] = { {-1, -1, -1} ,{-1, 8, -1},{-1, -1, -1} };
-	Mat Kx(3, 3, CV_32F, xFilters);
-	//Mat Ky(3, 3, CV_32F, yFilters);
-	Mat Ix;
-	convolve(sourceImage, destinationImage, Kx);
-	//convolve(src, dest, Ky);
-	//computeHypotenuse(Ix, Iy, dest);
+int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, bool isZeroCrossing) {
+
+
+	try {
+		// initial Laplace kernel
+		float filters[3][3] = { {0,1, 0}, {1,-4,1},{0,1,0} };
+		//float filters[3][3] = { {-1, -1, -1} ,{-1, 8, -1},{-1, -1, -1} };
+		//float filters[3][3] = { {1, 1, 1} ,{1, -8, 1},{1, 1, 1} };
+		Mat laplacianKernel(3, 3, CV_32F, filters);
+
+		Mat imageBlur;
+		// Apply Gaussian kernel to reduce noise 
+		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
+
+		// Apply kernel to image
+		convolve(imageBlur, destinationImage, laplacianKernel);
+
+
+		// Check and apply zero crossing
+		if (isZeroCrossing) {
+			//normalize(destinationImage, 1 / 255.0);
+			applyZeroCrossing(destinationImage, destinationImage);
+		}
+
+		return 1;
+	}
+	catch (Exception& e) {
+		cout << e.msg << endl;
+		return 0;
+	}
 }
 
 void sobelMethod(const Mat& sourceImage)
@@ -466,13 +487,22 @@ void prewittMethod(const Mat& sourceImage)
 
 void laplaceMethod(const Mat& sourceImage)
 {
-	Mat dest;
-	namedWindow("Laplace", 1);
+	Mat dest, zeroCrossing, imageLib, imageBlur;
+	//namedWindow("Laplace", 1);
 
 	while (true) {
-		detectByLaplace(sourceImage, dest);
-
+		detectByLaplace(sourceImage, dest,5, 1.0,false);
+		//normalize(dest,255.0);
+		//cout << dest;
 		imshow("Laplace", dest);
+
+		//detectByLaplace(sourceImage, zeroCrossing);
+		//imshow("Laplace with using ZeroCrossing", zeroCrossing);
+
+		applyGaussianBlur(sourceImage, imageBlur,5,1.0);
+		Laplacian(sourceImage, imageLib, CV_32F,5);
+		normalize(imageLib, 1/255.0);
+		imshow("Laplace with OpenCV", imageLib);
 		int iKey = waitKey(50);
 		if (iKey == 27)
 			break;
@@ -501,9 +531,9 @@ void cannyMethod(const Mat& sourceImage)
 			imshow("Canny", dest);
 			
 			// OpenCV
-			/*Mat imageCanny;
-			Canny(originalImage, imageCanny, 50, 100);
-			imshow("Canny CV", imageCanny);*/
+			Mat imageCanny;
+			Canny(sourceImage, imageCanny, 25, 75,3,true);
+			imshow("Canny CV", imageCanny);
 		}
 		int iKey = waitKey(50);
 		if (iKey == 27)
