@@ -482,12 +482,12 @@ void sobelMethod(const Mat& sourceImage, String direction)
 
 	// Set default value of trackbar
 	setTrackbarPos("ksize", "Sobel", 5);
-	setTrackbarPos("sigma", "Sobel", 10);
+	setTrackbarPos("sigma", "Sobel", 1);
 
 	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
-			int check = detectBySobel(sourceImage, destX, destY, destXY, ksize, sigma);
+			int check = detectBySobel(sourceImage, destX, destY, destXY, ksize, sigma * 1.0);
 			if (direction == "X")
 				imshow("Sobel", destX);
 			else if (direction == "Y")
@@ -523,12 +523,12 @@ void prewittMethod(const Mat& sourceImage, String direction)
 
 	// Set default value of trackbar
 	setTrackbarPos("ksize", "Prewitt", 5);
-	setTrackbarPos("sigma", "Prewitt", 10);
+	setTrackbarPos("sigma", "Prewitt", 1);
 
 	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
-			int check = detectByPrewitt(sourceImage, destX, destY, destXY, ksize, sigma);
+			int check = detectByPrewitt(sourceImage, destX, destY, destXY, ksize, sigma * 1.0);
 			if (direction == "X")
 				imshow("Prewitt", destX);
 			else if (direction == "Y")
@@ -553,10 +553,10 @@ void laplaceMethod(const Mat& sourceImage)
 	createTrackbar("sigma", "Laplace", &sigma, 100);
 
 	setTrackbarPos("ksize", "Laplace", 5);
-	setTrackbarPos("sigma", "Laplace", 10);
+	setTrackbarPos("sigma", "Laplace", 1);
 	while (true) {
 		if (ksize % 2 !=0) {
-			detectByLaplace(sourceImage, dest, ksize, sigma*1.0/10);
+			detectByLaplace(sourceImage, dest, ksize, sigma * 1.0);
 			imshow("Laplace", dest);
 
 			//// openCV
@@ -587,7 +587,7 @@ void cannyMethod(const Mat& sourceImage, String options)
 
 	// Set default value of trackbar
 	setTrackbarPos("ksize", "Canny", 5);
-	setTrackbarPos("sigma", "Canny", 10);
+	setTrackbarPos("sigma", "Canny", 1);
 	setTrackbarPos("low\nthreshold", "Canny", 5);
 	setTrackbarPos("high\nthreshold", "Canny", 10);
 

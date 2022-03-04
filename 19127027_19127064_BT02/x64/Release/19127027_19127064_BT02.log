@@ -1,0 +1,36 @@
+﻿  function.cpp
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(21,10): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(27,59): warning C4244: '=': conversion from 'double' to '_Tp', possible loss of data
+          with
+          [
+              _Tp=float
+          ]
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(37,31): warning C4244: '/=': conversion from 'double' to '_Tp', possible loss of data
+          with
+          [
+              _Tp=float
+          ]
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(171,55): warning C4244: '=': conversion from 'double' to '_Tp', possible loss of data
+          with
+          [
+              _Tp=float
+          ]
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(388,42): warning C4305: 'argument': truncation from 'double' to 'float'
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(392,42): warning C4305: 'argument': truncation from 'double' to 'float'
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(421,42): warning C4305: 'argument': truncation from 'double' to 'float'
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(425,42): warning C4305: 'argument': truncation from 'double' to 'float'
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(454,35): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(490,78): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(477,34): warning C4101: 'highThreshold': unreferenced local variable
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(477,20): warning C4101: 'lowThreshold': unreferenced local variable
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(531,80): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(559,52): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(599,116): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(599,93): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(599,65): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  main.cpp
+  Generating code
+  Previous IPDB was built with incompatible compiler, fall back to full compilation.
+  All 141 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  19127027_19127064_BT02.vcxproj -> G:\CodeCpp\Lab02\x64\Release\19127027_19127064_BT02.exe
