@@ -404,22 +404,40 @@ int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize, fl
 	}
 }
 
-void sobelMethod(const Mat& sourceImage)
+//////////////////////////////////////////////////////////////////////////////////
+/*
+*
+* FUNCTIONS THAT PROCESS COMMANDLINE
+*
+*
+*/
+//////////////////////////////////////////////////////////////////////////////////
+
+void sobelMethod(const Mat& sourceImage, String direction)
 {
 	Mat destX, destY, destXY;
 	namedWindow("Sobel", 1);
 	int ksize, sigma, lowThreshold, highThreshold;
 
+	// Create trackbar
 	createTrackbar("ksize", "Sobel", &ksize, 9);
 	createTrackbar("sigma", "Sobel", &sigma, 100);
 
+	// Set default value of trackbar
 	setTrackbarPos("ksize", "Sobel", 5);
 	setTrackbarPos("sigma", "Sobel", 10);
 
+	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
 			int check = detectBySobel(sourceImage, destX, destY, destXY, ksize, sigma);
-			imshow("Sobel", destXY);
+			if (direction == "X")
+				imshow("Sobel", destX);
+			else if (direction == "Y")
+				imshow("Sobel", destY);
+			else if (direction == "XY")
+				imshow("Sobel", destXY);
+
 
 			// OpenCV
 			/*Mat grad_x, grad_y;
@@ -429,28 +447,40 @@ void sobelMethod(const Mat& sourceImage)
 			imshow("Sobel CV by Y", grad_y);*/
 		}
 		int iKey = waitKey(50);
+
+		// Press ESC to exit
 		if (iKey == 27)
 			break;
 	}
 }
 
-void prewittMethod(const Mat& sourceImage)
+void prewittMethod(const Mat& sourceImage, String direction)
 {
 	Mat destX, destY, destXY, grad_x, grad_y;
 	namedWindow("Prewitt", 1);
-	int ksize, sigma, lowThreshold, highThreshold;
+	int ksize, sigma;
 
+	// Create trackbar
 	createTrackbar("ksize", "Prewitt", &ksize, 9);
 	createTrackbar("sigma", "Prewitt", &sigma, 100);
 
+	// Set default value of trackbar
 	setTrackbarPos("ksize", "Prewitt", 5);
 	setTrackbarPos("sigma", "Prewitt", 10);
 
+	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
 			int check = detectByPrewitt(sourceImage, destX, destY, destXY, ksize, sigma);
-			imshow("Prewitt", destXY);
+			if (direction == "X")
+				imshow("Prewitt", destX);
+			else if (direction == "Y")
+				imshow("Prewitt", destY);
+			else if (direction == "XY")
+				imshow("Prewitt", destXY);
 		}
+
+		// Press ESC to exit
 		int iKey = waitKey(50);
 		if (iKey == 27)
 			break;
@@ -492,16 +522,19 @@ void cannyMethod(const Mat& sourceImage)
 	namedWindow("Canny", 1);
 	int ksize,sigma, lowThreshold, highThreshold;
 
+	// Create trackbar
 	createTrackbar("ksize", "Canny", &ksize, 9);
 	createTrackbar("sigma", "Canny", &sigma, 100);
 	createTrackbar("low\nthreshold", "Canny", &lowThreshold, 100);
 	createTrackbar("high\nthreshold", "Canny", &highThreshold, 100);
 
+	// Set default value of trackbar
 	setTrackbarPos("ksize", "Canny", 5);
 	setTrackbarPos("sigma", "Canny", 10);
 	setTrackbarPos("low\nthreshold", "Canny", 5);
 	setTrackbarPos("high\nthreshold", "Canny", 10);
 	
+	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
 			int check = detectByCanny(sourceImage, dest, ksize, sigma*1.0/10, lowThreshold*1.0/100, highThreshold*1.0/100);
@@ -513,6 +546,8 @@ void cannyMethod(const Mat& sourceImage)
 			Canny(imageBlur, imageCanny, 25, 50,3,true);
 			imshow("Canny CV", imageCanny);
 		}
+
+		// Press ESC to exit
 		int iKey = waitKey(50);
 		if (iKey == 27)
 			break;
