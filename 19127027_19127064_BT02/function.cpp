@@ -282,34 +282,6 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 */
 //////////////////////////////////////////////////////////////////////////////////
 
-int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, float lowThreshold, float highThreshold, float strongPixel, float weakPixel)
-{
-	try {
-		Mat imageBlur, grads, theta, angle, nonMaxSuprression;
-
-		// Step 1: reduce noise or blur image
-		//// reduce noise
-		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
-		
-		// Step 2: compute gradient and theta
-		computeGradient(imageBlur, grads, theta);
-		//normalize(grads, 255.0/findMaxPixel(grads));
-		// Step 3: apply non max supression
-		//convert radion to dregree after applying
-		convertRadianToDegree(theta, angle);
-		applyNonMaxSupression(grads, nonMaxSuprression, angle);
-
-		// Step 4: apply double threshold and hyteresis
-		applyThresholdAndHysteresis(nonMaxSuprression, destinationImage, lowThreshold, highThreshold, strongPixel, weakPixel);
-	}
-	catch (Exception& e) {
-		cout << e.msg << endl;
-		return 0;
-	}
-	return 1;
-}
-
-
 int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinationImage_Y, Mat& destinationImage_XY, int ksize, float sigma)
 {
 	try {
@@ -404,6 +376,32 @@ int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize, fl
 	}
 }
 
+int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, float lowThreshold, float highThreshold, float strongPixel, float weakPixel)
+{
+	try {
+		Mat imageBlur, grads, theta, angle, nonMaxSuprression;
+
+		// Step 1: reduce noise or blur image
+		//// reduce noise
+		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
+
+		// Step 2: compute gradient and theta
+		computeGradient(imageBlur, grads, theta);
+		//normalize(grads, 255.0/findMaxPixel(grads));
+		// Step 3: apply non max supression
+		//convert radion to dregree after applying
+		convertRadianToDegree(theta, angle);
+		applyNonMaxSupression(grads, nonMaxSuprression, angle);
+
+		// Step 4: apply double threshold and hyteresis
+		applyThresholdAndHysteresis(nonMaxSuprression, destinationImage, lowThreshold, highThreshold, strongPixel, weakPixel);
+	}
+	catch (Exception& e) {
+		cout << e.msg << endl;
+		return 0;
+	}
+	return 1;
+}
 //////////////////////////////////////////////////////////////////////////////////
 /*
 *
@@ -425,12 +423,12 @@ void sobelMethod(const Mat& sourceImage, String direction)
 
 	// Set default value of trackbar
 	setTrackbarPos("ksize", "Sobel", 5);
-	setTrackbarPos("sigma", "Sobel", 10);
+	setTrackbarPos("sigma", "Sobel", 1);
 
 	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
-			int check = detectBySobel(sourceImage, destX, destY, destXY, ksize, sigma);
+			int check = detectBySobel(sourceImage, destX, destY, destXY, ksize, sigma * 1.0);
 			if (direction == "X")
 				imshow("Sobel", destX);
 			else if (direction == "Y")
@@ -466,12 +464,12 @@ void prewittMethod(const Mat& sourceImage, String direction)
 
 	// Set default value of trackbar
 	setTrackbarPos("ksize", "Prewitt", 5);
-	setTrackbarPos("sigma", "Prewitt", 10);
+	setTrackbarPos("sigma", "Prewitt", 1);
 
 	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
-			int check = detectByPrewitt(sourceImage, destX, destY, destXY, ksize, sigma);
+			int check = detectByPrewitt(sourceImage, destX, destY, destXY, ksize, sigma * 1.0);
 			if (direction == "X")
 				imshow("Prewitt", destX);
 			else if (direction == "Y")
@@ -496,10 +494,10 @@ void laplaceMethod(const Mat& sourceImage)
 	createTrackbar("sigma", "Laplace", &sigma, 100);
 
 	setTrackbarPos("ksize", "Laplace", 5);
-	setTrackbarPos("sigma", "Laplace", 10);
+	setTrackbarPos("sigma", "Laplace", 1);
 	while (true) {
 		if (ksize % 2 !=0) {
-			detectByLaplace(sourceImage, dest, ksize, sigma*1.0/10);
+			detectByLaplace(sourceImage, dest, ksize, sigma * 1.0);
 			imshow("Laplace", dest);
 
 			//// openCV
@@ -530,14 +528,14 @@ void cannyMethod(const Mat& sourceImage)
 
 	// Set default value of trackbar
 	setTrackbarPos("ksize", "Canny", 5);
-	setTrackbarPos("sigma", "Canny", 10);
+	setTrackbarPos("sigma", "Canny", 1);
 	setTrackbarPos("low\nthreshold", "Canny", 5);
 	setTrackbarPos("high\nthreshold", "Canny", 10);
 	
 	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
-			int check = detectByCanny(sourceImage, dest, ksize, sigma*1.0/10, lowThreshold*1.0/100, highThreshold*1.0/100);
+			int check = detectByCanny(sourceImage, dest, ksize, sigma * 1.0, lowThreshold*1.0/100, highThreshold*1.0/100);
 			imshow("Canny", dest);
 			
 			// OpenCV

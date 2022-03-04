@@ -4,7 +4,7 @@ int main(int argc, char** argv) {
 	cv::CommandLineParser parser(argc, argv,
 		"{input |Images\\1.png|Input image's path}"
 		"{method ||Choose method [Sobel, Prewitt, Laplace, Canny, All] to detect edge of image }"
-		"{direction |XY| Direction (X, Y or XY) of Sobel, Prewitt method}"
+		"{direction |XY| Choose direction [X, Y, XY] of Sobel, Prewitt method}"
 	);
 	// Show help's commandline 
 	parser.about("\n~~This program detect edge of image~~\n[Press ESC to exit program]");
