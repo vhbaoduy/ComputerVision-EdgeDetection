@@ -98,9 +98,11 @@ void normalize(Mat& mat, float value);
 * Compute gradient and theta (angle) of image
 * @param image - The input matrix of image
 * @param grad - The matrix of gradient
+* @param gradX - The matrix of gradient in direction X
+* @param gradY - The matrix of gradientin direction Y
 * @param theta - The matrix of angle
 */
-void computeGradient(const Mat& image, Mat& grad, Mat& theta); // function of Canny of algorithms
+void computeGradient(const Mat& image, Mat& grad, Mat& gradX, Mat& gradY, Mat& theta); // function of Canny of algorithms
 
 /**
 * Convert radian matrix to degree matrix
@@ -120,13 +122,25 @@ float findMaxPixel(const Mat& mat); // function of Canny of algorithms
 
 
 /**
+* Compute value of pixel by using interpolation. r = (b-a)*alpha + a :: http://justin-liang.com/tutorials/canny/
+* @param a - coefficient of interpolation
+* @param b - coefficient of interpolation
+* @param c - coefficient of interpolation
+* @return r - the result of interpolation
+*/
+float applyInterpolation(float a, float b, float alpha); // function of non-max supression
+
+/**
 * Apply non max supression to the image
 * 
-* @param src - The matrix of image (input)
+* @param grads - The matrix of gradient image (input)
 * @param dest - The destination matrix (output)
 * @param degree - The matrix of degree (input)
+* @param isInterpolation - Apply non-max supression with Interpolation or not
+* @param gradX - If using interpolation, it will be needed gradient X
+* @param gradY - If using interpolation, it will be needed gradient Y
 */
-void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree); // function of Canny of algorithms
+void applyNonMaxSupression(const Mat& grads, Mat& dest, const Mat& degree, bool isInterpolation,const Mat& gradX, const Mat& gradY); // function of Canny of algorithms
 
 
 
@@ -185,13 +199,14 @@ int detectByPrewitt(const Mat& sourceImage, Mat& destinationImage_X, Mat& destin
 * @param destination - The matrix contains destination image
 * @param ksize - The size of kernel with matrix ksize x ksize
 * @param sigma - The sigma of gaussian distribution.
+* @param isInterpolation - Use interpolation or not, default true
 * @param lowThreshold - The low threshold (input), default 0.05
 * @param highThreshold - The high thresold (input), default 0.1
 * @param strongPixel - The pixel that assigned to strong position on image, default 255
 * @param weakPixel - The pixel that assigned to weak position on image, default 75
 * @return 1 - if detecting successfully, otherwise 0.
 */
-int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0, float lowThreshold = 0.05, float highThreshold = 0.1, float strongPixel = 255.0, float weakPixel = 75.0);
+int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0,bool isInterpolation = true, float lowThreshold = 0.05, float highThreshold = 0.15, float strongPixel = 255.0, float weakPixel = 75.0);
 
 
 
@@ -240,8 +255,9 @@ void laplaceMethod(const Mat& sourceImage);
 /**
 * Canny method with ksize, sigma, low threshold, high threshold trackbar
 * @param sourceImage - The matix of source image
+* @param options - The options at non-max suppression step
 */
-void cannyMethod(const Mat& sourceImage);
+void cannyMethod(const Mat& sourceImage, String options);
 
 
 

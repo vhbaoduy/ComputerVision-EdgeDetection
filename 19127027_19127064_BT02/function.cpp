@@ -144,19 +144,22 @@ void normalize(Mat& mat, float value) {
 	}
 }
 
-void computeGradient(const Mat& image, Mat& grad, Mat& theta) {
+void computeGradient(const Mat& image, Mat& grad,Mat& gradX, Mat& gradY, Mat& theta) {
 	float xFilters[3][3] = { {-1,0, 1}, {-2,0,2},{-1,0,1} };
-	float yFilters[3][3] = { {1, 2, 1} ,{0, 0, 0},{-1, -2, -1} };
+	float yFilters[3][3] = { {-1, -2, -1} ,{0, 0, 0},{1, 2, 1} };
+	//float xFilters[3][3] = { {1,1, 1}, {0,0,0},{-1,-1,-1} };
+	//float yFilters[3][3] = { {1, 2, 1} ,{0, 0, 0},{-1, -2, -1}};
+
 	Mat Kx(3, 3, CV_32F, xFilters);
 	Mat Ky(3, 3, CV_32F, yFilters);
-	Mat Ix, Iy;
 
-	convolve(image, Ix, Kx);
-	convolve(image, Iy, Ky);
-	computeHypotenuse(Ix, Iy, grad);
-	normalize(grad, 1.0/findMaxPixel(grad));
+	convolve(image, gradX, Kx);
+	//normalize(Ix, 1.0 / findMaxPixel(Ix));
+	convolve(image, gradY, Ky);
+	//normalize(Iy, 1.0 / findMaxPixel(Iy));
+	computeHypotenuse(gradX, gradY, grad);
 	//imshow("grad", grad);
-	computeTheta(Iy, Ix, theta);
+	computeTheta(gradY, gradX, theta);
 }
 
 
@@ -185,45 +188,101 @@ float findMaxPixel(const Mat& mat) {
 	return max;
 }
 
+float applyInterpolation(float a, float b, float alpha) {
+	return (b - a) * alpha + a;
+}
 
-void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree) {
-	dest = Mat(src.rows, src.cols, src.type());
+void applyNonMaxSupression(const Mat& grads, Mat& dest, const Mat& degree, bool isInterpolation, const Mat& gradX, const Mat& gradY) {
+	dest = Mat(grads.rows, grads.cols, grads.type());
 
-	for (int i = 1; i < src.rows - 1; ++i) {
-		for (int j = 1; j < src.cols - 1; ++j) {
-			float value = degree.at<float>(i, j);
-			float r = 255.0, q = 255.0;
+	if (isInterpolation && !gradX.empty() && !gradY.empty()){
+		for (int i = 1; i < grads.rows - 1; ++i) {
+			for (int j = 1; j < grads.cols - 1; ++j) {
+				float value = degree.at<float>(i, j);
+				float p = 255.0, r = 255.0;
+				float yBot1, yBot2, yTop1, yTop2, alpha;
+				
+				if (value >= 0 && value < 45) {
+					alpha = abs(gradY.at<float>(i, j) / grads.at<float>(i, j));
+					yBot1 = grads.at<float>(i, j + 1);
+					yBot2 = grads.at<float>(i + 1, j + 1);
+					yTop1 = grads.at<float>(i, j - 1);
+					yTop2 = grads.at<float>(i - 1, j - 1);
+				}
+				else if (value <= 45 && value <= 90) {
+					alpha = abs(gradX.at<float>(i, j) / grads.at<float>(i, j));
+					yBot1 = grads.at<float>(i + 1, j);
+					yBot2 = grads.at<float>(i + 1, j + 1);
+					yTop1 = grads.at<float>(i - 1, j);
+					yTop2 = grads.at<float>(i - 1, j - 1);
+				}
+				else if (value > 90 && value <= 135){
+					alpha = abs(gradX.at<float>(i, j) / grads.at<float>(i, j));
+					yBot1 = grads.at<float>(i + 1, j);
+					yBot2 = grads.at<float>(i + 1, j - 1);
+					yTop1 = grads.at<float>(i - 1, j);
+					yTop2 = grads.at<float>(i - 1, j + 1);
+				}
+				else if (value > 135 && value <= 180) {
+					alpha = abs(gradX.at<float>(i, j) / grads.at<float>(i, j));
+					yBot1 = grads.at<float>(i, j - 1);
+					yBot2 = grads.at<float>(i + 1, j - 1);
+					yTop1 = grads.at<float>(i, j + 1);
+					yTop2 = grads.at<float>(i - 1, j + 1);
+				}
 
-			// angle 0
-			if ((value >= 0 && value < 22.5) || (value >= 157.5 && value <= 180.0)) {
-				q = src.at<float>(i, j + 1);
-				r = src.at<float>(i, j - 1);
+				// compute interpolation
+				r = applyInterpolation(yBot1, yBot2, alpha);
+				p = applyInterpolation(yTop1, yTop2, alpha);
+
+
+				// check value
+				if (grads.at<float>(i, j) > p && grads.at<float>(i, j) > r) {
+					dest.at<float>(i, j) = grads.at<float>(i, j);
+				}
+				else {
+					dest.at<float>(i, j) = 0.0;
+				}
 			}
+		}
+	}
+	else {
+		for (int i = 1; i < grads.rows - 1; ++i) {
+			for (int j = 1; j < grads.cols - 1; ++j) {
+				float value = degree.at<float>(i, j);
+				float r = 255.0, q = 255.0;
 
-			// angle 45
-			else if (value >= 22.5 && value < 67.5) {
-				q = src.at<float>(i + 1, j - 1);
-				r = src.at<float>(i - 1, j + 1);
-			}
+				// angle 0
+				if ((value >= 0 && value < 22.5) || (value >= 157.5 && value <= 180.0)) {
+					q = grads.at<float>(i, j + 1);
+					r = grads.at<float>(i, j - 1);
+				}
 
-			// angle 90
-			else if (value <= 67.5 && value < 112.5) {
-				q = src.at<float>(i + 1, j);
-				r = src.at<float>(i - 1, j);
-			}
+				// angle 45
+				else if (value >= 22.5 && value < 67.5) {
+					q = grads.at<float>(i + 1, j + 1);
+					r = grads.at<float>(i - 1, j - 1);
+				}
 
-			// angle 135
-			else if (value >= 112.5 && value < 157.5) {
-				q = src.at<float>(i - 1, j - 1);
-				r = src.at<float>(i + 1, j + 1);
-			}
+				// angle 90
+				else if (value <= 67.5 && value < 112.5) {
+					q = grads.at<float>(i + 1, j);
+					r = grads.at<float>(i - 1, j);
+				}
 
-			// check value 
-			if (src.at<float>(i, j) >= q && src.at<float>(i, j) >= r) {
-				dest.at<float>(i, j) = src.at<float>(i, j);
-			}
-			else {
-				dest.at<float>(i, j) = 0.0;
+				// angle 135
+				else if (value >= 112.5 && value < 157.5) {
+					q = grads.at<float>(i + 1, j - 1);
+					r = grads.at<float>(i - 1, j + 1);
+				}
+
+				// check value 
+				if (grads.at<float>(i, j) >= q && grads.at<float>(i, j) >= r) {
+					dest.at<float>(i, j) = grads.at<float>(i, j);
+				}
+				else {
+					dest.at<float>(i, j) = 0.0;
+				}
 			}
 		}
 	}
@@ -248,7 +307,6 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 			}
 		}
 	}
-
 	for (int i = 1; i < src.rows - 1; ++i) {
 		for (int j = 1; j < src.cols - 1; ++j) {
 			float pixel = dest.at<float>(i, j);
@@ -282,23 +340,22 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 */
 //////////////////////////////////////////////////////////////////////////////////
 
-int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, float lowThreshold, float highThreshold, float strongPixel, float weakPixel)
+int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, bool isInterpolation, float lowThreshold, float highThreshold, float strongPixel, float weakPixel)
 {
 	try {
-		Mat imageBlur, grads, theta, angle, nonMaxSuprression;
+		Mat imageBlur, grads,gradX, gradY, theta, angle, nonMaxSuprression;
 
 		// Step 1: reduce noise or blur image
 		//// reduce noise
 		applyGaussianBlur(sourceImage, imageBlur, ksize, sigma);
 		
 		// Step 2: compute gradient and theta
-		computeGradient(imageBlur, grads, theta);
+		computeGradient(imageBlur, grads, gradX, gradY, theta);
 		//normalize(grads, 255.0/findMaxPixel(grads));
 		// Step 3: apply non max supression
 		//convert radion to dregree after applying
 		convertRadianToDegree(theta, angle);
-		applyNonMaxSupression(grads, nonMaxSuprression, angle);
-
+		applyNonMaxSupression(grads, nonMaxSuprression, angle, isInterpolation, gradX, gradY);
 		// Step 4: apply double threshold and hyteresis
 		applyThresholdAndHysteresis(nonMaxSuprression, destinationImage, lowThreshold, highThreshold, strongPixel, weakPixel);
 	}
@@ -516,7 +573,7 @@ void laplaceMethod(const Mat& sourceImage)
 	}
 }
 
-void cannyMethod(const Mat& sourceImage)
+void cannyMethod(const Mat& sourceImage, String options)
 {
 	Mat dest;
 	namedWindow("Canny", 1);
@@ -533,11 +590,13 @@ void cannyMethod(const Mat& sourceImage)
 	setTrackbarPos("sigma", "Canny", 10);
 	setTrackbarPos("low\nthreshold", "Canny", 5);
 	setTrackbarPos("high\nthreshold", "Canny", 10);
+
+	bool option = options == "true" ? 1 : 0;
 	
 	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
-			int check = detectByCanny(sourceImage, dest, ksize, sigma*1.0/10, lowThreshold*1.0/100, highThreshold*1.0/100);
+			int check = detectByCanny(sourceImage, dest, ksize, sigma*1.0/10,option, lowThreshold*1.0/100, highThreshold*1.0/100);
 			imshow("Canny", dest);
 			
 			// OpenCV
