@@ -17,7 +17,7 @@ void createGaussianKernel(Mat& kernel, int ksize, float sigma) {
 	int range = (ksize - 1) / 2;
 
 	// initial the needed variable
-	float sum = 0.0, r;
+	double sum = 0.0, r;
 	float s = 2.0 * sigma * sigma;
 	for (int x = -range; x <= range; ++x) {
 		for (int y = -range; y <= range; ++y) {
@@ -154,6 +154,8 @@ void computeGradient(const Mat& image, Mat& grad, Mat& theta) {
 	convolve(image, Ix, Kx);
 	convolve(image, Iy, Ky);
 	computeHypotenuse(Ix, Iy, grad);
+	normalize(grad, 1.0/findMaxPixel(grad));
+	//imshow("grad", grad);
 	computeTheta(Iy, Ix, theta);
 }
 
@@ -194,8 +196,8 @@ void applyNonMaxSupression(const Mat& src, Mat& dest, const Mat& degree) {
 
 			// angle 0
 			if ((value >= 0 && value < 22.5) || (value >= 157.5 && value <= 180.0)) {
-				q = src.at<float>(i, j - 1);
-				r = src.at<float>(i, j + 1);
+				q = src.at<float>(i, j + 1);
+				r = src.at<float>(i, j - 1);
 			}
 
 			// angle 45
@@ -247,7 +249,6 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 		}
 	}
 
-
 	for (int i = 1; i < src.rows - 1; ++i) {
 		for (int j = 1; j < src.cols - 1; ++j) {
 			float pixel = dest.at<float>(i, j);
@@ -271,32 +272,6 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 }
 
 
-void applyZeroCrossing(const Mat& src, Mat& dest) {
-	Mat result(src.rows, src.cols, CV_32F);
-
-	for (int i = 1; i < src.rows - 1; ++i) {
-		for (int j = 1; j < src.cols - 1; ++j) {
-			int negCounter = 0;
-			int posCounter = 0;
-			for (int k = -1; k <= 1; ++k) {
-				for (int l = -1; l <= 1; ++l) {
-					if (k != 0 && l != 0) {
-						if (src.at<float>(i + k, j + l) > 0) posCounter++;
-						else if (src.at<float>(i + k, j + l) < 0) negCounter++;
-					}
-				}
-			}
-			if (negCounter > 0 && posCounter > 0) {
-				result.at<float>(i, j) = 255.0;
-			}
-			else {
-			}
-		}
-	}
-
-	dest = result.clone();
-}
-
 
 //////////////////////////////////////////////////////////////////////////////////
 /*
@@ -318,6 +293,7 @@ int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, floa
 		
 		// Step 2: compute gradient and theta
 		computeGradient(imageBlur, grads, theta);
+		//normalize(grads, 255.0/findMaxPixel(grads));
 		// Step 3: apply non max supression
 		//convert radion to dregree after applying
 		convertRadianToDegree(theta, angle);
@@ -400,14 +376,14 @@ int detectByPrewitt(const Mat& sourceImage, Mat& destinationImage_X, Mat& destin
 	return 1;
 }
 
-int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, bool isZeroCrossing) {
+int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma) {
 
 
 	try {
 		// initial Laplace kernel
-		float filters[3][3] = { {0,1, 0}, {1,-4,1},{0,1,0} };
+		//float filters[3][3] = { {0,-1, 0}, {-1,4,-1},{0,-1,0} };
 		//float filters[3][3] = { {-1, -1, -1} ,{-1, 8, -1},{-1, -1, -1} };
-		//float filters[3][3] = { {1, 1, 1} ,{1, -8, 1},{1, 1, 1} };
+		float filters[3][3] = { {1, 1, 1} ,{1, -8, 1},{1, 1, 1} };
 		Mat laplacianKernel(3, 3, CV_32F, filters);
 
 		Mat imageBlur;
@@ -417,12 +393,8 @@ int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize, fl
 		// Apply kernel to image
 		convolve(imageBlur, destinationImage, laplacianKernel);
 
-
-		// Check and apply zero crossing
-		if (isZeroCrossing) {
-			//normalize(destinationImage, 1 / 255.0);
-			applyZeroCrossing(destinationImage, destinationImage);
-		}
+		// normalize with max value
+		normalize(destinationImage, 1.0 / findMaxPixel(destinationImage));
 
 		return 1;
 	}
@@ -488,21 +460,26 @@ void prewittMethod(const Mat& sourceImage)
 void laplaceMethod(const Mat& sourceImage)
 {
 	Mat dest, zeroCrossing, imageLib, imageBlur;
-	//namedWindow("Laplace", 1);
+	namedWindow("Laplace", 1);
+	int ksize, sigma;
+	createTrackbar("ksize", "Laplace", &ksize, 9);
+	createTrackbar("sigma", "Laplace", &sigma, 100);
 
+	setTrackbarPos("ksize", "Laplace", 5);
+	setTrackbarPos("sigma", "Laplace", 10);
 	while (true) {
-		detectByLaplace(sourceImage, dest,5, 1.0,false);
-		//normalize(dest,255.0);
-		//cout << dest;
-		imshow("Laplace", dest);
+		if (ksize % 2 !=0) {
+			detectByLaplace(sourceImage, dest, ksize, sigma*1.0/10);
+			imshow("Laplace", dest);
 
-		//detectByLaplace(sourceImage, zeroCrossing);
-		//imshow("Laplace with using ZeroCrossing", zeroCrossing);
+			//// openCV
+			//GaussianBlur(sourceImage, imageBlur, Size(5, 5), 1.0);
+			//Laplacian(imageBlur, imageLib, CV_32F);
 
-		applyGaussianBlur(sourceImage, imageBlur,5,1.0);
-		Laplacian(sourceImage, imageLib, CV_32F,5);
-		normalize(imageLib, 1/255.0);
-		imshow("Laplace with OpenCV", imageLib);
+			//// normlize value of matrix
+			//normalize(imageLib, 1.0 / findMaxPixel(imageLib));
+			//imshow("Laplace with OpenCV", imageLib);
+		}
 		int iKey = waitKey(50);
 		if (iKey == 27)
 			break;
@@ -513,7 +490,7 @@ void cannyMethod(const Mat& sourceImage)
 {
 	Mat dest;
 	namedWindow("Canny", 1);
-	int ksize, sigma, lowThreshold, highThreshold;
+	int ksize,sigma, lowThreshold, highThreshold;
 
 	createTrackbar("ksize", "Canny", &ksize, 9);
 	createTrackbar("sigma", "Canny", &sigma, 100);
@@ -522,17 +499,18 @@ void cannyMethod(const Mat& sourceImage)
 
 	setTrackbarPos("ksize", "Canny", 5);
 	setTrackbarPos("sigma", "Canny", 10);
-	setTrackbarPos("low\nthreshold", "Canny", 10);
-	setTrackbarPos("high\nthreshold", "Canny", 30);
+	setTrackbarPos("low\nthreshold", "Canny", 5);
+	setTrackbarPos("high\nthreshold", "Canny", 10);
 	
 	while (true) {
 		if (ksize % 2 != 0) {
-			int check = detectByCanny(sourceImage, dest, ksize, sigma*1.0/100, lowThreshold*1.0/100, highThreshold*1.0/100);
+			int check = detectByCanny(sourceImage, dest, ksize, sigma*1.0/10, lowThreshold*1.0/100, highThreshold*1.0/100);
 			imshow("Canny", dest);
 			
 			// OpenCV
-			Mat imageCanny;
-			Canny(sourceImage, imageCanny, 25, 75,3,true);
+			Mat imageCanny, imageBlur;
+			GaussianBlur(sourceImage, imageBlur, Size(5, 5), 1.0);
+			Canny(imageBlur, imageCanny, 25, 50,3,true);
 			imshow("Canny CV", imageCanny);
 		}
 		int iKey = waitKey(50);
@@ -540,3 +518,4 @@ void cannyMethod(const Mat& sourceImage)
 			break;
 	}
 }
+

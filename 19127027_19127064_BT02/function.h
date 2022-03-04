@@ -144,14 +144,6 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 
 
 
-/*
-* Apply zero crossing to detect edges.
-* @param src - The matrix of source image
-* @param dest - The matrix of destination image
-*/
-void applyZeroCrossing(const Mat& src, Mat& dest); // function of laplacian algorithms
-
-
 //////////////////////////////////////////////////////////////////////////////////
 /*
 *
@@ -212,7 +204,7 @@ int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, 
 * @param sigma - The sigma of gaussian distribution.
 * @param isZeroCrossing - The option of applying zerocrossing
 */
-int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0, bool isZeroCrossing = true);
+int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0);
 
 
 
@@ -250,6 +242,7 @@ void laplaceMethod(const Mat& sourceImage);
 * @param sourceImage - The matix of source image
 */
 void cannyMethod(const Mat& sourceImage);
+
 
 
 #endif // ! _FUNCTION_H_
