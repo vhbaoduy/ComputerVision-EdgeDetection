@@ -196,7 +196,6 @@ float applyInterpolation(float a, float b, float alpha) {
 
 void applyNonMaxSuppression(const Mat& grads, Mat& dest, const Mat& degree, bool isInterpolation, const Mat& gradX, const Mat& gradY) {
 	dest = Mat(grads.rows, grads.cols, grads.type());
-
 	if (isInterpolation && !gradX.empty() && !gradY.empty()){
 		for (int i = 1; i < grads.rows - 1; ++i) {
 			for (int j = 1; j < grads.cols - 1; ++j) {
@@ -204,14 +203,14 @@ void applyNonMaxSuppression(const Mat& grads, Mat& dest, const Mat& degree, bool
 				float p = 255.0, r = 255.0;
 				float yBot1, yBot2, yTop1, yTop2, alpha;
 				
-				if (value >= 0 && value < 45) {
+				if (value >= 0 && value <= 45) {
 					alpha = abs(gradY.at<float>(i, j) / grads.at<float>(i, j));
 					yBot1 = grads.at<float>(i, j + 1);
 					yBot2 = grads.at<float>(i + 1, j + 1);
 					yTop1 = grads.at<float>(i, j - 1);
 					yTop2 = grads.at<float>(i - 1, j - 1);
 				}
-				else if (value <= 45 && value <= 90) {
+				else if (value > 45 && value <= 90) {
 					alpha = abs(gradX.at<float>(i, j) / grads.at<float>(i, j));
 					yBot1 = grads.at<float>(i + 1, j);
 					yBot2 = grads.at<float>(i + 1, j + 1);
@@ -239,7 +238,7 @@ void applyNonMaxSuppression(const Mat& grads, Mat& dest, const Mat& degree, bool
 
 
 				// check value
-				if (grads.at<float>(i, j) > p && grads.at<float>(i, j) > r) {
+				if (grads.at<float>(i, j) >= p && grads.at<float>(i, j) >= r) {
 					dest.at<float>(i, j) = grads.at<float>(i, j);
 				}
 				else {
@@ -298,8 +297,8 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 	for (int i = 0; i < src.rows; ++i) {
 		for (int j = 0; j < src.cols; ++j) {
 
-			if (src.at<float>(i, j) < lowPixel) {
-				dest.at<float>(i, j) = 0;
+			if (src.at<float>(i, j) <= lowPixel) {
+				dest.at<float>(i, j) = 0.0;
 			}
 			else if (src.at<float>(i, j) <= highPixel) {
 				dest.at<float>(i, j) = weakPixel;
@@ -313,8 +312,8 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 		Mat tempMat = normalize(dest, 1 / strongPixel);
 		imshow("Double Thresholding", tempMat);
 	}
-	for (int i = 1; i < src.rows - 1; ++i) {
-		for (int j = 1; j < src.cols - 1; ++j) {
+	for (int i = 1; i < src.rows -1; ++i) {
+		for (int j = 1; j < src.cols-1; ++j) {
 			float pixel = dest.at<float>(i, j);
 			if (pixel == weakPixel) {
 				try {
