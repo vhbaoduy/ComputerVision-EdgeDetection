@@ -23,17 +23,18 @@ G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(414,63): warning C4305: 'ar
 G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(443,63): warning C4305: 'argument': truncation from 'double' to 'float'
 G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(447,63): warning C4305: 'argument': truncation from 'double' to 'float'
 G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(476,54): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(512,78): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(512,83): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(499,34): warning C4101: 'highThreshold': unreferenced local variable
 G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(499,20): warning C4101: 'lowThreshold': unreferenced local variable
-G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(553,80): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(581,52): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(553,85): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(581,57): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(622,116): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(622,93): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
 G:\CodeCpp\Lab02\19127027_19127064_BT02\function.cpp(622,65): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+  main.cpp
   Generating code
-  4 of 141 functions ( 2.8%) were compiled, the rest were copied from previous compilation.
+  0 of 141 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    7 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   19127027_19127064_BT02.vcxproj -> G:\CodeCpp\Lab02\x64\Release\19127027_19127064_BT02.exe

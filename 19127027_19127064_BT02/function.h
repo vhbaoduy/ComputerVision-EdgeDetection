@@ -220,7 +220,6 @@ int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, 
 * @param destinationImage - The maxtrix of destination image
 * @param ksize - The size of kernel with matrix ksize x ksize
 * @param sigma - The sigma of gaussian distribution.
-* @param isZeroCrossing - The option of applying zerocrossing
 */
 int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0);
 
