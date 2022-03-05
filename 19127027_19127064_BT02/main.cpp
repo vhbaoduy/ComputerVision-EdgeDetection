@@ -6,6 +6,7 @@ int main(int argc, char** argv) {
 		"{method ||Choose method [Sobel, Prewitt, Laplace, Canny, All] to detect edge of image }"
 		"{direction |XY| Direction (X, Y or XY) of Sobel, Prewitt method}"
 		"{interpolation |true|Options (true or false) of Canny at Non-max Supression step}"
+		"{showStep |false|Options (true or false) of Canny detection, show step by step}"
 	);
 	// Show help's commandline 
 	parser.about("\n~~This program detect edge of image~~\n[Press ESC to exit program]");
@@ -28,7 +29,8 @@ int main(int argc, char** argv) {
 		// Get method option
 		String method = parser.get<String>("method");
 		String direction = parser.get<String>("direction");
-		String optionOfCanny = parser.get<String>("interpolation");
+		String interpolation = parser.get<String>("interpolation");
+		String showStep = parser.get<String>("showStep");
 
 		// Run all methods
 		if (method == "All") {
@@ -36,7 +38,7 @@ int main(int argc, char** argv) {
 			sobelMethod(grayscaleImage, direction);
 			prewittMethod(grayscaleImage, direction);
 			laplaceMethod(grayscaleImage);
-			cannyMethod(grayscaleImage,optionOfCanny);
+			cannyMethod(grayscaleImage, interpolation,showStep);
 		}
 
 		// Sobel method
@@ -61,7 +63,7 @@ int main(int argc, char** argv) {
 		// Canny method
 		if (method == "Canny") {
 			imshow("Orginal image", originalImage);
-			cannyMethod(grayscaleImage, optionOfCanny);
+			cannyMethod(grayscaleImage, interpolation, showStep);
 		}
 	}
 	catch (Exception& e) {

@@ -136,12 +136,14 @@ void computeTheta(const Mat& mat1, const Mat& mat2, Mat& dest) {
 }
 
 
-void normalize(Mat& mat, float value) {
+Mat normalize(const Mat& mat, float value) {
+	Mat result(mat.rows, mat.cols, CV_32F);
 	for (int i = 0; i < mat.rows; ++i) {
 		for (int j = 0; j < mat.cols; ++j) {
-			mat.at<float>(i, j) = mat.at<float>(i, j) * value ;
+			result.at<float>(i, j) = mat.at<float>(i, j) * value;
 		}
 	}
+	return result.clone();
 }
 
 void computeGradient(const Mat& image, Mat& grad,Mat& gradX, Mat& gradY, Mat& theta) {
@@ -192,7 +194,7 @@ float applyInterpolation(float a, float b, float alpha) {
 	return (b - a) * alpha + a;
 }
 
-void applyNonMaxSupression(const Mat& grads, Mat& dest, const Mat& degree, bool isInterpolation, const Mat& gradX, const Mat& gradY) {
+void applyNonMaxSuppression(const Mat& grads, Mat& dest, const Mat& degree, bool isInterpolation, const Mat& gradX, const Mat& gradY) {
 	dest = Mat(grads.rows, grads.cols, grads.type());
 
 	if (isInterpolation && !gradX.empty() && !gradY.empty()){
@@ -288,7 +290,7 @@ void applyNonMaxSupression(const Mat& grads, Mat& dest, const Mat& degree, bool 
 	}
 }
 
-void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel, float weakPixel) {
+void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, bool show, float strongPixel, float weakPixel) {
 	dest = Mat(src.rows, src.cols, src.type());
 	float maxPixel = findMaxPixel(src);
 	float highPixel = maxPixel* highThreshold;
@@ -306,6 +308,10 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 				dest.at<float>(i, j) = strongPixel;
 			}
 		}
+	}
+	if (show) {
+		Mat tempMat = normalize(dest, 1 / strongPixel);
+		imshow("Double Thresholding", tempMat);
 	}
 	for (int i = 1; i < src.rows - 1; ++i) {
 		for (int j = 1; j < src.cols - 1; ++j) {
@@ -327,6 +333,10 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 
 		}
 	}
+	//if (show) {
+	//	Mat tempMat = normalize(dest, 1 / strongPixel);
+	//	imshow("Hysteresis", tempMat);
+	//}
 }
 
 
@@ -340,10 +350,10 @@ void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, 
 */
 //////////////////////////////////////////////////////////////////////////////////
 
-int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, bool isInterpolation, float lowThreshold, float highThreshold, float strongPixel, float weakPixel)
+int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, float sigma, bool isInterpolation, float lowThreshold, float highThreshold,bool showStep, float strongPixel, float weakPixel)
 {
 	try {
-		Mat imageBlur, grads,gradX, gradY, theta, angle, nonMaxSuprression;
+		Mat imageBlur, grads,gradX, gradY, theta, angle, nonMaxSuppression;
 
 		// Step 1: reduce noise or blur image
 		//// reduce noise
@@ -355,9 +365,21 @@ int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize, floa
 		// Step 3: apply non max supression
 		//convert radion to dregree after applying
 		convertRadianToDegree(theta, angle);
-		applyNonMaxSupression(grads, nonMaxSuprression, angle, isInterpolation, gradX, gradY);
-		// Step 4: apply double threshold and hyteresis
-		applyThresholdAndHysteresis(nonMaxSuprression, destinationImage, lowThreshold, highThreshold, strongPixel, weakPixel);
+		applyNonMaxSuppression(grads, nonMaxSuppression, angle, isInterpolation, gradX, gradY);
+
+		// check show Step
+		if (showStep) {
+			imageBlur = normalize(imageBlur, 1.0 / findMaxPixel(imageBlur));
+			imshow("Gaussian Filter", imageBlur);
+			grads = normalize(grads, 1.0 / findMaxPixel(grads));
+			imshow("Gradient", grads);
+			nonMaxSuppression = normalize(nonMaxSuppression, 1.0 / findMaxPixel(nonMaxSuppression));
+			imshow("Non-max suppression", nonMaxSuppression);
+		}
+
+		// Step 4: apply double threshold and hyteresis - final step
+		applyThresholdAndHysteresis(nonMaxSuppression, destinationImage, lowThreshold, highThreshold, showStep, strongPixel, weakPixel);
+		
 	}
 	catch (Exception& e) {
 		cout << e.msg << endl;
@@ -385,11 +407,11 @@ int detectBySobel(const Mat& sourceImage, Mat& destinationImage_X, Mat& destinat
 
 		convolve(imageBlur, destinationImage_X, Kx);
 		// Normailize the matrix of image to show
-		normalize(destinationImage_X, 1.0 / 255);
+		destinationImage_X = normalize(destinationImage_X, 1.0 / 255);
 
 		convolve(imageBlur, destinationImage_Y, Ky);
 		// Normailize the matrix of image to show
-		normalize(destinationImage_Y, 1.0 / 255);
+		destinationImage_Y = normalize(destinationImage_Y, 1.0 / 255);
 
 
 		computeHypotenuse(destinationImage_X, destinationImage_Y, destinationImage_XY);
@@ -418,11 +440,11 @@ int detectByPrewitt(const Mat& sourceImage, Mat& destinationImage_X, Mat& destin
 
 		convolve(imageBlur, destinationImage_X, Kx);
 		// Normalize the matrix of image to show
-		normalize(destinationImage_X, 1.0 / 255);
+		destinationImage_Y = normalize(destinationImage_Y, 1.0 / 255);
 
 		convolve(imageBlur, destinationImage_Y, Ky);
 		// Normalize the matrix of image to show
-		normalize(destinationImage_Y, 1.0 / 255);
+		destinationImage_Y = normalize(destinationImage_Y, 1.0 / 255);
 
 		computeHypotenuse(destinationImage_X, destinationImage_Y, destinationImage_XY);
 	}
@@ -451,7 +473,7 @@ int detectByLaplace(const Mat& sourceImage, Mat& destinationImage, int ksize, fl
 		convolve(imageBlur, destinationImage, laplacianKernel);
 
 		// normalize with max value
-		normalize(destinationImage, 1.0 / findMaxPixel(destinationImage));
+		destinationImage = normalize(destinationImage, 1.0 / findMaxPixel(destinationImage));
 
 		return 1;
 	}
@@ -573,7 +595,7 @@ void laplaceMethod(const Mat& sourceImage)
 	}
 }
 
-void cannyMethod(const Mat& sourceImage, String options)
+void cannyMethod(const Mat& sourceImage, String interpolation, String showStep)
 {
 	Mat dest;
 	namedWindow("Canny", 1);
@@ -591,12 +613,13 @@ void cannyMethod(const Mat& sourceImage, String options)
 	setTrackbarPos("low\nthreshold", "Canny", 5);
 	setTrackbarPos("high\nthreshold", "Canny", 10);
 
-	bool option = options == "true" ? 1 : 0;
+	bool option = interpolation == "true" ? 1 : 0;
+	bool show = showStep == "true" ? 1 : 0;
 	
 	// Detect
 	while (true) {
 		if (ksize % 2 != 0) {
-			int check = detectByCanny(sourceImage, dest, ksize, sigma*1.0/10,option, lowThreshold*1.0/100, highThreshold*1.0/100);
+			int check = detectByCanny(sourceImage, dest, ksize, sigma*1.0/10,option, lowThreshold*1.0/100, highThreshold*1.0/100,show);
 			imshow("Canny", dest);
 			
 			// OpenCV

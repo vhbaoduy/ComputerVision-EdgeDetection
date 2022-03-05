@@ -90,8 +90,9 @@ void computeTheta(const Mat& mat1, const Mat& mat2, Mat& dest);
 * Convert matrix of image to new range that supports to show image with cv2::imshow()
 * @param mat - The input matrix
 * @param value - the value of scaling
+* @return result - matrix that normalized
 */
-void normalize(Mat& mat, float value);
+Mat normalize(const Mat& mat, float value);
 
 
 /**
@@ -140,7 +141,7 @@ float applyInterpolation(float a, float b, float alpha); // function of non-max 
 * @param gradX - If using interpolation, it will be needed gradient X
 * @param gradY - If using interpolation, it will be needed gradient Y
 */
-void applyNonMaxSupression(const Mat& grads, Mat& dest, const Mat& degree, bool isInterpolation,const Mat& gradX, const Mat& gradY); // function of Canny of algorithms
+void applyNonMaxSuppression(const Mat& grads, Mat& dest, const Mat& degree, bool isInterpolation,const Mat& gradX, const Mat& gradY); // function of Canny of algorithms
 
 
 
@@ -151,10 +152,11 @@ void applyNonMaxSupression(const Mat& grads, Mat& dest, const Mat& degree, bool 
 * @param dest - The destination matrix (output)
 * @param lowThreshold - The low threshold (input), default 0.05
 * @param highThreshold - The high thresold (input), default 0.1
+* @param show - Option that show image
 * @param strongPixel - The pixel that assigned to strong position on image, default 255
 * @param weakPixel - The pixel that assigned to weak position on image, default 75
 */
-void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold, float strongPixel = 255.0, float weakPixel = 75.0); // function of Canny of algorithms
+void applyThresholdAndHysteresis(const Mat& src, Mat& dest, float lowThreshold, float highThreshold,bool show, float strongPixel = 255.0, float weakPixel = 75.0); // function of Canny of algorithms
 
 
 
@@ -202,11 +204,12 @@ int detectByPrewitt(const Mat& sourceImage, Mat& destinationImage_X, Mat& destin
 * @param isInterpolation - Use interpolation or not, default true
 * @param lowThreshold - The low threshold (input), default 0.05
 * @param highThreshold - The high thresold (input), default 0.1
+* @param showStep - The option that show step by step.
 * @param strongPixel - The pixel that assigned to strong position on image, default 255
 * @param weakPixel - The pixel that assigned to weak position on image, default 75
 * @return 1 - if detecting successfully, otherwise 0.
 */
-int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0,bool isInterpolation = true, float lowThreshold = 0.05, float highThreshold = 0.15, float strongPixel = 255.0, float weakPixel = 75.0);
+int detectByCanny(const Mat& sourceImage, Mat& destinationImage, int ksize = 5, float sigma = 1.0,bool isInterpolation = true, float lowThreshold = 0.05, float highThreshold = 0.15,bool showStep = false, float strongPixel = 255.0, float weakPixel = 75.0);
 
 
 
@@ -255,9 +258,10 @@ void laplaceMethod(const Mat& sourceImage);
 /**
 * Canny method with ksize, sigma, low threshold, high threshold trackbar
 * @param sourceImage - The matix of source image
-* @param options - The options at non-max suppression step
+* @param interpolation - The option at non-max suppression step
+* @param showStep - The option that show step by step
 */
-void cannyMethod(const Mat& sourceImage, String options);
+void cannyMethod(const Mat& sourceImage, String interpolation, String showStep);
 
 
 
