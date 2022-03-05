@@ -439,7 +439,7 @@ int detectByPrewitt(const Mat& sourceImage, Mat& destinationImage_X, Mat& destin
 
 		convolve(imageBlur, destinationImage_X, Kx);
 		// Normalize the matrix of image to show
-		destinationImage_Y = normalize(destinationImage_Y, 1.0 / 255);
+		destinationImage_X = normalize(destinationImage_X, 1.0 / 255);
 
 		convolve(imageBlur, destinationImage_Y, Ky);
 		// Normalize the matrix of image to show
